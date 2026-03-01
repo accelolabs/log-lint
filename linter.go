@@ -42,29 +42,29 @@ func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr, bannedWords []string)
 	for _, arg := range call.Args {
 		ast.Inspect(arg, func(n ast.Node) bool {
 			switch argType := n.(type) {
-				case *ast.Ident:
-					name := strings.ToLower(argType.Name) 
+			case *ast.Ident:
+				name := strings.ToLower(argType.Name)
 
-					for _, bannedWord := range bannedWords {
-						if strings.Contains(strings.ToLower(name), bannedWord) {
-							pass.Reportf(argType.Pos(), "log check failed: message should not contain potential secrets")
-							break
-						}
+				for _, bannedWord := range bannedWords {
+					if strings.Contains(strings.ToLower(name), bannedWord) {
+						pass.Reportf(argType.Pos(), "log check failed: message should not contain potential secrets")
+						break
 					}
+				}
 
-				case *ast.BasicLit:
-					if argType.Kind != token.STRING {
-						return true
-					}
+			case *ast.BasicLit:
+				if argType.Kind != token.STRING {
+					return true
+				}
 
-					val, err := strconv.Unquote(argType.Value)
-					if err != nil || val == "" {
-						return true
-					}
+				val, err := strconv.Unquote(argType.Value)
+				if err != nil || val == "" {
+					return true
+				}
 
-					if errMsg := checkLiteralRules(val); errMsg != "" {
-						pass.Reportf(argType.Pos(), "log check failed: %s", errMsg)
-					}
+				if errMsg := checkLiteralRules(val); errMsg != "" {
+					pass.Reportf(argType.Pos(), "log check failed: %s", errMsg)
+				}
 			}
 			return true
 		})
