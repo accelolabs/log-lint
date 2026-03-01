@@ -16,14 +16,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          version: latest
-          cache: true
+          version: "1.25.6"
+          cache: false
 
-      - name: Upgrade git
-        run: |
-          sudo add-apt-repository ppa:git-core/ppa -y
-          sudo apt update
-          sudo apt install git -y
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.10.1
 
       - name: Run Unit Tests
         run: |
