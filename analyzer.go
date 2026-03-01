@@ -2,6 +2,7 @@ package loglint
 
 import (
 	"go/ast"
+	"strings"
 
 	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
@@ -19,6 +20,12 @@ type AnalyzerSettings struct {
 	BannedWords []string `json:"banned-words"`
 }
 
+func (s *AnalyzerSettings) Normalize() {
+	for i, w := range s.BannedWords {
+		s.BannedWords[i] = strings.ToLower(w)
+	}
+}
+
 type LogLintPlugin struct {
 	settings AnalyzerSettings
 }
@@ -28,6 +35,8 @@ func New(settings any) (register.LinterPlugin, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s.Normalize()
 
 	return &LogLintPlugin{settings: s}, nil
 }

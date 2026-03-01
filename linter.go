@@ -3,9 +3,9 @@ package loglint
 import (
 	"go/ast"
 	"go/token"
+	"strconv"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"golang.org/x/tools/go/analysis"
 )
@@ -35,39 +35,36 @@ func isLog(pass *analysis.Pass, call *ast.CallExpr) bool {
 	}
 
 	path := pkg.Path()
-	return path == "log/slog" || strings.Contains(path, "go.uber.org/zap")
+	return path == "log/slog" || path == "go.uber.org/zap"
 }
 
 func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr, bannedWords []string) {
 	for _, arg := range call.Args {
 		ast.Inspect(arg, func(n ast.Node) bool {
-			ident, ok := n.(*ast.Ident)
-			if !ok {
-				return true
-			}
+			switch argType := n.(type) {
+				case *ast.Ident:
+					name := strings.ToLower(argType.Name) 
 
-			for _, bannedWord := range bannedWords {
-				if strings.Contains(strings.ToLower(ident.Name), bannedWord) {
-					pass.Reportf(ident.Pos(), "log check failed: message should not contain potential secrets")
-					break
-				}
-			}
-			return true
-		})
+					for _, bannedWord := range bannedWords {
+						if strings.Contains(strings.ToLower(name), bannedWord) {
+							pass.Reportf(argType.Pos(), "log check failed: message should not contain potential secrets")
+							break
+						}
+					}
 
-		ast.Inspect(arg, func(n ast.Node) bool {
-			lit, ok := n.(*ast.BasicLit)
-			if !ok || lit.Kind != token.STRING {
-				return true
-			}
+				case *ast.BasicLit:
+					if argType.Kind != token.STRING {
+						return true
+					}
 
-			val := strings.Trim(lit.Value, `"`+"`")
-			if val == "" {
-				return true
-			}
+					val, err := strconv.Unquote(argType.Value)
+					if err != nil || val == "" {
+						return true
+					}
 
-			if errMsg := checkLiteralRules(val); errMsg != "" {
-				pass.Reportf(lit.Pos(), "log check failed: %s", errMsg)
+					if errMsg := checkLiteralRules(val); errMsg != "" {
+						pass.Reportf(argType.Pos(), "log check failed: %s", errMsg)
+					}
 			}
 			return true
 		})
@@ -75,13 +72,18 @@ func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr, bannedWords []string)
 }
 
 func checkLiteralRules(s string) string {
-	firstRune, _ := utf8.DecodeRuneInString(s)
-	if unicode.IsUpper(firstRune) {
-		return "message should start with a lowercase letter"
+	for _, r := range s {
+		if unicode.IsSpace(r) {
+			continue
+		}
+		if unicode.IsUpper(r) {
+			return "message should start with a lowercase letter"
+		}
+		break
 	}
 
 	for _, r := range s {
-		if !unicode.IsLetter(r) && !unicode.IsNumber(r) && !unicode.IsSpace(r) {
+		if !(unicode.IsLetter(r) || unicode.IsNumber(r) || unicode.IsSpace(r)) {
 			return "message should not contain special symbols"
 		}
 
