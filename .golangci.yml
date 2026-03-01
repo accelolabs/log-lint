@@ -1,0 +1,15 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - loglint
+
+  settings:
+    custom:
+      loglint:
+        type: "module"
+        description: Codestyle checks in log messages.
+        original-url: github.com/accelolabs/log-lint
+        settings:
+          banned-words: ["password", "apikey", "token"]

@@ -10,8 +10,6 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
-var sensitiveKeywords = []string{"password", "apikey", "token"}
-
 func isLog(pass *analysis.Pass, call *ast.CallExpr) bool {
 	selector, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
@@ -40,7 +38,7 @@ func isLog(pass *analysis.Pass, call *ast.CallExpr) bool {
 	return path == "log/slog" || strings.Contains(path, "go.uber.org/zap")
 }
 
-func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr) {
+func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr, bannedWords []string) {
 	for _, arg := range call.Args {
 		ast.Inspect(arg, func(n ast.Node) bool {
 			ident, ok := n.(*ast.Ident)
@@ -48,7 +46,7 @@ func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr) {
 				return true
 			}
 
-			for _, bannedWord := range sensitiveKeywords {
+			for _, bannedWord := range bannedWords {
 				if strings.Contains(strings.ToLower(ident.Name), bannedWord) {
 					pass.Reportf(ident.Pos(), "log check failed: message should not contain potential secrets")
 					break

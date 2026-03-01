@@ -12,6 +12,7 @@ func TestSlogLower() {
 
 	slog.Info("starting server on port 8080")
 	slog.Error("failed to connect to database")
+	slog.Error("failed to connect to database")
 }
 
 func TestSlogEnglish() {
@@ -38,9 +39,9 @@ func TestSlogCritical() {
 	apiKey := "veryverysecretkeydonotshareoreverythingwillexplode"
 	token := "veryverysecrettokendonotshareoreverythingwillexplode"
 
-	slog.Info("user password ", "", password) // want "log check failed: message should not contain potential secrets"
-	slog.Debug("apikey " + apiKey)           // want "log check failed: message should not contain potential secrets"
-	slog.Info("token " + token)              // want "log check failed: message should not contain potential secrets"
+	slog.Info("user password " + password) // want "log check failed: message should not contain potential secrets"
+	slog.Debug("apikey " + apiKey)         // want "log check failed: message should not contain potential secrets"
+	slog.Info("token " + token)            // want "log check failed: message should not contain potential secrets"
 
 	slog.Info("user authenticated successfully")
 	slog.Debug("api request completed")
@@ -91,9 +92,9 @@ func TestZapCritical() {
 	apiKey := "veryverysecretkeydonotshareoreverythingwillexplode"
 	token := "veryverysecrettokendonotshareoreverythingwillexplode"
 
-	sugar.Info("user password ", "", password) // want "log check failed: message should not contain potential secrets"
-	sugar.Debug("apikey " + apiKey)           // want "log check failed: message should not contain potential secrets"
-	sugar.Info("token " + token)              // want "log check failed: message should not contain potential secrets"
+	sugar.Info("user password " + password) // want "log check failed: message should not contain potential secrets"
+	sugar.Debug("apikey " + apiKey)         // want "log check failed: message should not contain potential secrets"
+	sugar.Info("token " + token)            // want "log check failed: message should not contain potential secrets"
 
 	sugar.Info("user authenticated successfully")
 	sugar.Debug("api request completed")
