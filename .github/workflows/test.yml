@@ -20,7 +20,11 @@ jobs:
           cache: true
 
       - name: Run Unit Tests
-        run: go test
+        run: |
+          cd testdata/loglint 
+          go mod download
+          cd ../..
+          go test
 
       - name: Install golangci-lint binary
         run: go install ://github.com
