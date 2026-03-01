@@ -16,7 +16,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'latest'
+          version: latest
           cache: true
 
       - name: Run Unit Tests
