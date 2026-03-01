@@ -10,6 +10,8 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
+var sensitiveKeywords = []string{"password", "apikey", "token"}
+
 func isLog(pass *analysis.Pass, call *ast.CallExpr) bool {
 	selector, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
@@ -39,37 +41,39 @@ func isLog(pass *analysis.Pass, call *ast.CallExpr) bool {
 }
 
 func checkLogArgs(pass *analysis.Pass, call *ast.CallExpr) {
-	if len(call.Args) == 0 {
-		return
-	}
-
 	for _, arg := range call.Args {
-		if !isLiteralString(arg) {
-			pass.Reportf(arg.Pos(), "log check failed: message should not contain potential secrets")
-		}
-	}
+		ast.Inspect(arg, func(n ast.Node) bool {
+			ident, ok := n.(*ast.Ident)
+			if !ok {
+				return true
+			}
 
-	lit, ok := call.Args[0].(*ast.BasicLit)
-	if !ok || lit.Kind != token.STRING {
-		return
-	}
+			for _, bannedWord := range sensitiveKeywords {
+				if strings.Contains(strings.ToLower(ident.Name), bannedWord) {
+					pass.Reportf(ident.Pos(), "log check failed: message should not contain potential secrets")
+					break
+				}
+			}
+			return true
+		})
 
-	val := strings.Trim(lit.Value, `"`+"`")
-	if val == "" {
-		return
-	}
+		ast.Inspect(arg, func(n ast.Node) bool {
+			lit, ok := n.(*ast.BasicLit)
+			if !ok || lit.Kind != token.STRING {
+				return true
+			}
 
-	if errMsg := checkLiteralRules(val); errMsg != "" {
-		pass.Reportf(lit.Pos(), "log check failed: %s", errMsg)
-	}
-}
+			val := strings.Trim(lit.Value, `"`+"`")
+			if val == "" {
+				return true
+			}
 
-func isLiteralString(expr ast.Expr) bool {
-	lit, ok := expr.(*ast.BasicLit)
-	if !ok {
-		return false
+			if errMsg := checkLiteralRules(val); errMsg != "" {
+				pass.Reportf(lit.Pos(), "log check failed: %s", errMsg)
+			}
+			return true
+		})
 	}
-	return lit.Kind == token.STRING
 }
 
 func checkLiteralRules(s string) string {

@@ -39,8 +39,8 @@ func TestSlogCritical() {
 	token := "veryverysecrettokendonotshareoreverythingwillexplode"
 
 	slog.Info("user password ", "", password) // want "log check failed: message should not contain potential secrets"
-	slog.Debug("api_key=" + apiKey)           // want "log check failed: message should not contain potential secrets"
-	slog.Info("token: " + token)              // want "log check failed: message should not contain potential secrets"
+	slog.Debug("apikey " + apiKey)           // want "log check failed: message should not contain potential secrets"
+	slog.Info("token " + token)              // want "log check failed: message should not contain potential secrets"
 
 	slog.Info("user authenticated successfully")
 	slog.Debug("api request completed")
@@ -92,8 +92,8 @@ func TestZapCritical() {
 	token := "veryverysecrettokendonotshareoreverythingwillexplode"
 
 	sugar.Info("user password ", "", password) // want "log check failed: message should not contain potential secrets"
-	sugar.Debug("api_key=" + apiKey)           // want "log check failed: message should not contain potential secrets"
-	sugar.Info("token: " + token)              // want "log check failed: message should not contain potential secrets"
+	sugar.Debug("apikey " + apiKey)           // want "log check failed: message should not contain potential secrets"
+	sugar.Info("token " + token)              // want "log check failed: message should not contain potential secrets"
 
 	sugar.Info("user authenticated successfully")
 	sugar.Debug("api request completed")
