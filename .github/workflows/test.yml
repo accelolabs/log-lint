@@ -27,7 +27,7 @@ jobs:
           go test
 
       - name: Install golangci-lint binary
-        run: go install ://github.com
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       - name: Build Custom Linter
         run: golangci-lint custom -v
