@@ -1,4 +1,4 @@
-module log-lint
+module github.com/accelolabs/log-lint
 
 go 1.25.6
 
